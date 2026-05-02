@@ -1,5 +1,5 @@
 """
-app.py — DevDocs AI — Software Documentation Assistant
+app.py — DevDocs AI — Fully Responsive Software Documentation Assistant
 """
 
 import os
@@ -52,64 +52,80 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 2rem;
+    padding: 0.85rem 1.5rem;
     border-bottom: 1px solid #21262d;
-    background: rgba(13,17,23,0.95);
+    background: rgba(13,17,23,0.97);
     backdrop-filter: blur(12px);
     position: sticky;
     top: 0;
     z-index: 100;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 .nav-logo {
     display: flex;
     align-items: center;
     gap: 0.6rem;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 500;
     color: #f0f6fc;
+    white-space: nowrap;
 }
 .nav-logo .logo-icon {
-    width: 28px; height: 28px;
+    width: 26px; height: 26px;
     background: linear-gradient(135deg, #30ff90, #00d4ff);
     border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    flex-shrink: 0;
 }
 .nav-logo .logo-slash { color: #30ff90; margin: 0 2px; }
 .nav-pills {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    flex-wrap: wrap;
 }
 .nav-pill {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: #8b949e;
     background: #161b22;
     border: 1px solid #30363d;
     border-radius: 6px;
-    padding: 0.3rem 0.7rem;
+    padding: 0.25rem 0.6rem;
+    white-space: nowrap;
 }
-.nav-pill.active { color: #30ff90; border-color: rgba(48,255,144,0.4); background: rgba(48,255,144,0.06); }
+.nav-pill.active {
+    color: #30ff90;
+    border-color: rgba(48,255,144,0.4);
+    background: rgba(48,255,144,0.06);
+}
+
+/* Hide nav pills on very small screens */
+@media (max-width: 480px) {
+    .nav-pills { display: none; }
+    .nav-bar { padding: 0.75rem 1rem; }
+}
 
 /* ── Hero ── */
 .hero {
     max-width: 860px;
-    margin: 4rem auto 3rem;
-    padding: 0 2rem;
+    margin: 3rem auto 2.5rem;
+    padding: 0 1.5rem;
     text-align: center;
 }
 .hero-eyebrow {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     color: #30ff90;
     letter-spacing: 0.08em;
-    margin-bottom: 1.2rem;
+    margin-bottom: 1rem;
     opacity: 0.9;
 }
 .hero h1 {
     font-family: 'Space Grotesk', sans-serif !important;
-    font-size: clamp(2.2rem, 4.5vw, 3.4rem) !important;
+    font-size: clamp(1.8rem, 5vw, 3.2rem) !important;
     font-weight: 700 !important;
     line-height: 1.15 !important;
     letter-spacing: -0.03em !important;
@@ -123,25 +139,29 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     background-clip: text;
 }
 .hero p {
-    font-size: 1rem !important;
+    font-size: clamp(0.88rem, 2vw, 1rem) !important;
     color: #8b949e !important;
     font-weight: 300 !important;
     line-height: 1.7 !important;
-    max-width: 560px;
+    max-width: 520px;
     margin: 0 auto !important;
+}
+
+@media (max-width: 480px) {
+    .hero { margin: 2rem auto 1.5rem; padding: 0 1rem; }
 }
 
 /* ── Upload zone ── */
 .upload-wrap {
     max-width: 640px;
-    margin: 0 auto 2rem;
+    margin: 0 auto 1.5rem;
     padding: 0 1.5rem;
 }
 [data-testid="stFileUploader"] {
     background: #161b22 !important;
     border: 1.5px dashed #30363d !important;
     border-radius: 12px !important;
-    padding: 1.5rem !important;
+    padding: 1.2rem !important;
     transition: all 0.2s !important;
 }
 [data-testid="stFileUploader"]:hover {
@@ -150,30 +170,40 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
 }
 [data-testid="stFileUploaderDropzoneInstructions"] span { color: #30ff90 !important; }
 
+@media (max-width: 480px) {
+    .upload-wrap { padding: 0 1rem; }
+}
+
 /* ── Doc info bar ── */
 .doc-bar {
     max-width: 860px;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto 1.2rem;
     padding: 0 1.5rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 .doc-tag {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    padding: 0.3rem 0.75rem;
+    font-size: 0.7rem;
+    padding: 0.28rem 0.65rem;
     border-radius: 6px;
     border: 1px solid #30363d;
     background: #161b22;
     color: #8b949e;
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
+    white-space: nowrap;
 }
 .doc-tag.green { color: #30ff90; border-color: rgba(48,255,144,0.35); background: rgba(48,255,144,0.06); }
 .doc-tag.blue  { color: #58a6ff; border-color: rgba(88,166,255,0.35); background: rgba(88,166,255,0.06); }
+
+@media (max-width: 480px) {
+    .doc-bar { padding: 0 1rem; gap: 0.4rem; }
+    .doc-tag { font-size: 0.65rem; padding: 0.22rem 0.5rem; }
+}
 
 /* ── Chat area ── */
 .chat-area {
@@ -182,11 +212,15 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     padding: 0 1.5rem 7rem;
 }
 
+@media (max-width: 480px) {
+    .chat-area { padding: 0 0.75rem 6rem; }
+}
+
 [data-testid="stChatMessage"] {
     background: transparent !important;
     border: none !important;
     padding: 0.2rem 0 !important;
-    gap: 0.75rem !important;
+    gap: 0.6rem !important;
 }
 
 /* User message */
@@ -195,8 +229,8 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     background: #161b22 !important;
     border: 1px solid #30363d !important;
     border-radius: 10px 10px 2px 10px !important;
-    padding: 0.8rem 1.1rem !important;
-    font-size: 0.95rem !important;
+    padding: 0.75rem 1rem !important;
+    font-size: clamp(0.85rem, 2vw, 0.95rem) !important;
     color: #e6edf3 !important;
 }
 
@@ -205,8 +239,8 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     background: rgba(48,255,144,0.04) !important;
     border: 1px solid rgba(48,255,144,0.12) !important;
     border-radius: 2px 10px 10px 10px !important;
-    padding: 0.9rem 1.2rem !important;
-    font-size: 0.93rem !important;
+    padding: 0.85rem 1.1rem !important;
+    font-size: clamp(0.85rem, 2vw, 0.93rem) !important;
     line-height: 1.75 !important;
 }
 
@@ -217,21 +251,22 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     border-radius: 4px !important;
     padding: 0.15rem 0.4rem !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.82rem !important;
+    font-size: clamp(0.75rem, 1.8vw, 0.82rem) !important;
     color: #30ff90 !important;
+    word-break: break-word !important;
 }
 [data-testid="stChatMessage"] pre {
     background: #010409 !important;
     border: 1px solid #21262d !important;
     border-radius: 8px !important;
-    padding: 1rem !important;
+    padding: 0.85rem !important;
     overflow-x: auto !important;
 }
 [data-testid="stChatMessage"] pre code {
     background: transparent !important;
     border: none !important;
     color: #e6edf3 !important;
-    font-size: 0.85rem !important;
+    font-size: clamp(0.78rem, 1.8vw, 0.85rem) !important;
 }
 
 /* ── Chat input ── */
@@ -250,7 +285,7 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
 [data-testid="stChatInput"] textarea {
     color: #e6edf3 !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.88rem !important;
+    font-size: clamp(0.82rem, 2vw, 0.88rem) !important;
     background: transparent !important;
 }
 [data-testid="stChatInput"] textarea::placeholder { color: #3d444d !important; }
@@ -264,7 +299,7 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
 }
 [data-testid="stExpander"] summary {
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.76rem !important;
+    font-size: clamp(0.7rem, 1.8vw, 0.76rem) !important;
     color: #8b949e !important;
     letter-spacing: 0.02em !important;
 }
@@ -275,15 +310,17 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     border: 1px solid #21262d;
     border-left: 3px solid #30ff90;
     border-radius: 0 8px 8px 0;
-    padding: 0.85rem 1rem;
+    padding: 0.75rem 0.9rem;
     margin-bottom: 0.6rem;
-    font-size: 0.83rem;
+    font-size: clamp(0.76rem, 1.8vw, 0.83rem);
     color: #8b949e;
     line-height: 1.65;
     font-family: 'JetBrains Mono', monospace;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 .src-label {
-    font-size: 0.7rem;
+    font-size: clamp(0.65rem, 1.6vw, 0.7rem);
     color: #30ff90;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -298,7 +335,7 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     border-radius: 8px !important;
     color: #e3b341 !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.85rem !important;
+    font-size: clamp(0.78rem, 1.8vw, 0.85rem) !important;
 }
 [data-testid="stSuccess"] div {
     background: rgba(48,255,144,0.06) !important;
@@ -306,17 +343,38 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     border-radius: 8px !important;
     color: #30ff90 !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 0.85rem !important;
+    font-size: clamp(0.78rem, 1.8vw, 0.85rem) !important;
 }
 
 /* ── Spinner ── */
-[data-testid="stSpinner"] p { color: #30ff90 !important; font-family: 'JetBrains Mono', monospace !important; }
+[data-testid="stSpinner"] p {
+    color: #30ff90 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: clamp(0.78rem, 1.8vw, 0.85rem) !important;
+}
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: #30ff90; }
+
+/* ── Mobile touch improvements ── */
+@media (max-width: 768px) {
+    [data-testid="stChatMessage"] {
+        gap: 0.4rem !important;
+    }
+    [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown,
+    [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) .stMarkdown {
+        padding: 0.65rem 0.85rem !important;
+    }
+}
+
+/* ── Tablet adjustments ── */
+@media (min-width: 481px) and (max-width: 1024px) {
+    .hero { margin: 2.5rem auto 2rem; }
+    .nav-pill { font-size: 0.65rem; padding: 0.22rem 0.5rem; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -330,7 +388,7 @@ st.markdown("""
     <div class="nav-pills">
         <div class="nav-pill active">chat</div>
         <div class="nav-pill">hybrid retrieval</div>
-        <div class="nav-pill">crossencoder rerank</div>
+        <div class="nav-pill">crossencoder</div>
         <div class="nav-pill">llama-3.3-70b</div>
     </div>
 </div>
@@ -384,13 +442,16 @@ if uploaded_file and uploaded_file.name != st.session_state.doc_name:
 
 # ── Doc bar ──
 if st.session_state.doc_name:
+    # Truncate long filenames on mobile
+    fname = st.session_state.doc_name
+    display_name = fname if len(fname) <= 30 else fname[:27] + "..."
     st.markdown(f"""
     <div class="doc-bar">
         <div class="doc-tag green">● ready</div>
-        <div class="doc-tag">📄 {st.session_state.doc_name}</div>
+        <div class="doc-tag">📄 {display_name}</div>
         <div class="doc-tag blue">{st.session_state.chunk_count} chunks</div>
         <div class="doc-tag">bm25 + vector</div>
-        <div class="doc-tag">crossencoder</div>
+        <div class="doc-tag">reranked</div>
     </div>
     """, unsafe_allow_html=True)
 

@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-F55036?style=flat-square)](https://groq.com)
 [![LangChain](https://img.shields.io/badge/LangChain-0.2+-1C3C3C?style=flat-square)](https://langchain.com)
-[![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-orange?style=flat-square)](https://trychroma.com)
+[![FAISS](https://img.shields.io/badge/FAISS-Vector%20Store-blue?style=flat-square)](https://github.com/facebookresearch/faiss)
 [![Streamlit](https://img.shields.io/badge/Streamlit-UI-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
@@ -59,8 +59,8 @@ An offline evaluation pipeline measures three dimensions:
 
 CI integration: `evaluate.py` exits with code `1` if quality drops below threshold, failing the build.
 
-### 🎨 Domain-Specific UI
-Terminal-aesthetic dark interface built for developers — `JetBrains Mono`, green-on-dark palette, source cards with page citations, monospace chat input. No generic purple-gradient AI look.
+### 🎨 Domain-Specific Responsive UI
+Terminal-aesthetic dark interface built for developers — `JetBrains Mono`, green-on-dark palette, source cards with page citations, monospace chat input. Fully responsive across laptops, tablets, and mobile devices. No generic purple-gradient AI look.
 
 ### 📦 Versioned Prompt Architecture
 System prompts and answer templates live as named constants in `rag_pipeline.py` — not buried in UI code. Changing prompt strategy is a one-line edit with a clear diff history.
@@ -82,7 +82,7 @@ System prompts and answer templates live as named constants in `rag_pipeline.py`
 │                    ┌────────────┴────────────┐                  │
 │                    ▼                         ▼                  │
 │           ┌──────────────┐         ┌──────────────┐            │
-│           │  ChromaDB    │         │  BM25 Index  │            │
+│           │  FAISS Index │         │  BM25 Index  │            │
 │           │  (semantic)  │         │  (keyword)   │            │
 │           └──────┬───────┘         └──────┬───────┘            │
 │                  │                         │                    │
@@ -123,7 +123,7 @@ System prompts and answer templates live as named constants in `rag_pipeline.py`
 |---|---|---|
 | **LLM** | Groq · `llama-3.3-70b-versatile` | Free API, fastest inference available |
 | **Embeddings** | `all-MiniLM-L6-v2` (HuggingFace) | Lightweight, strong semantic quality |
-| **Vector Store** | ChromaDB | Local, persistent, no infra needed |
+| **Vector Store** | FAISS (Meta) | In-memory, blazing fast, production-proven |
 | **Keyword Search** | BM25 (rank-bm25) | Exact term matching for technical queries |
 | **Reranker** | `ms-marco-MiniLM-L-6-v2` | State-of-the-art passage reranking |
 | **Orchestration** | LangChain | Document loading, splitting, retrieval |
