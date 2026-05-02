@@ -1,12 +1,19 @@
 """
 app.py — DevDocs AI — Fully Responsive Software Documentation Assistant
+Elite: multi-document support, conversation memory, metadata-aware sources
 """
 
 import os
 import tempfile
 import streamlit as st
 from langchain_community.retrievers import BM25Retriever
-from rag_pipeline import load_and_chunk, build_vectorstore, generate_answer
+from rag_pipeline import (
+    load_and_chunk,
+    load_multiple_pdfs,
+    build_vectorstore,
+    merge_into_vectorstore,
+    generate_answer,
+)
 
 # ------------------ PAGE CONFIG ------------------
 st.set_page_config(
@@ -28,7 +35,6 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Space Grotesk', sans-serif !important;
 }
 
-/* Subtle grid background */
 [data-testid="stAppViewContainer"]::before {
     content: '';
     position: fixed;
@@ -47,7 +53,7 @@ html, body, [data-testid="stAppViewContainer"] {
 section[data-testid="stMain"] > div { padding-top: 0 !important; }
 #MainMenu, footer, [data-testid="stToolbar"] { display: none !important; }
 
-/* ── Top nav bar ── */
+/* ── Nav bar ── */
 .nav-bar {
     display: flex;
     align-items: center;
@@ -81,11 +87,7 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     flex-shrink: 0;
 }
 .nav-logo .logo-slash { color: #30ff90; margin: 0 2px; }
-.nav-pills {
-    display: flex;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-}
+.nav-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 .nav-pill {
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.68rem;
@@ -96,13 +98,8 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     padding: 0.25rem 0.6rem;
     white-space: nowrap;
 }
-.nav-pill.active {
-    color: #30ff90;
-    border-color: rgba(48,255,144,0.4);
-    background: rgba(48,255,144,0.06);
-}
+.nav-pill.active { color: #30ff90; border-color: rgba(48,255,144,0.4); background: rgba(48,255,144,0.06); }
 
-/* Hide nav pills on very small screens */
 @media (max-width: 480px) {
     .nav-pills { display: none; }
     .nav-bar { padding: 0.75rem 1rem; }
@@ -147,9 +144,7 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     margin: 0 auto !important;
 }
 
-@media (max-width: 480px) {
-    .hero { margin: 2rem auto 1.5rem; padding: 0 1rem; }
-}
+@media (max-width: 480px) { .hero { margin: 2rem auto 1.5rem; padding: 0 1rem; } }
 
 /* ── Upload zone ── */
 .upload-wrap {
@@ -169,10 +164,7 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     background: rgba(48,255,144,0.03) !important;
 }
 [data-testid="stFileUploaderDropzoneInstructions"] span { color: #30ff90 !important; }
-
-@media (max-width: 480px) {
-    .upload-wrap { padding: 0 1rem; }
-}
+@media (max-width: 480px) { .upload-wrap { padding: 0 1rem; } }
 
 /* ── Doc info bar ── */
 .doc-bar {
@@ -199,6 +191,7 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
 }
 .doc-tag.green { color: #30ff90; border-color: rgba(48,255,144,0.35); background: rgba(48,255,144,0.06); }
 .doc-tag.blue  { color: #58a6ff; border-color: rgba(88,166,255,0.35); background: rgba(88,166,255,0.06); }
+.doc-tag.purple { color: #c084fc; border-color: rgba(192,132,252,0.35); background: rgba(192,132,252,0.06); }
 
 @media (max-width: 480px) {
     .doc-bar { padding: 0 1rem; gap: 0.4rem; }
@@ -206,15 +199,8 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
 }
 
 /* ── Chat area ── */
-.chat-area {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 0 1.5rem 7rem;
-}
-
-@media (max-width: 480px) {
-    .chat-area { padding: 0 0.75rem 6rem; }
-}
+.chat-area { max-width: 860px; margin: 0 auto; padding: 0 1.5rem 7rem; }
+@media (max-width: 480px) { .chat-area { padding: 0 0.75rem 6rem; } }
 
 [data-testid="stChatMessage"] {
     background: transparent !important;
@@ -223,7 +209,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     gap: 0.6rem !important;
 }
 
-/* User message */
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown p,
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown {
     background: #161b22 !important;
@@ -234,7 +219,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     color: #e6edf3 !important;
 }
 
-/* Assistant message */
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) .stMarkdown {
     background: rgba(48,255,144,0.04) !important;
     border: 1px solid rgba(48,255,144,0.12) !important;
@@ -244,7 +228,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     line-height: 1.75 !important;
 }
 
-/* Code blocks inside answers */
 [data-testid="stChatMessage"] code {
     background: #0d1117 !important;
     border: 1px solid #30363d !important;
@@ -276,7 +259,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     border-radius: 12px !important;
     max-width: 860px !important;
     margin: 0 auto !important;
-    font-family: 'JetBrains Mono', monospace !important;
 }
 [data-testid="stChatInput"]:focus-within {
     border-color: rgba(48,255,144,0.5) !important;
@@ -290,7 +272,7 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
 }
 [data-testid="stChatInput"] textarea::placeholder { color: #3d444d !important; }
 
-/* ── Source expander ── */
+/* ── Expander ── */
 [data-testid="stExpander"] {
     background: #0d1117 !important;
     border: 1px solid #21262d !important;
@@ -301,7 +283,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     font-family: 'JetBrains Mono', monospace !important;
     font-size: clamp(0.7rem, 1.8vw, 0.76rem) !important;
     color: #8b949e !important;
-    letter-spacing: 0.02em !important;
 }
 [data-testid="stExpander"] summary:hover { color: #30ff90 !important; }
 
@@ -317,7 +298,6 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     line-height: 1.65;
     font-family: 'JetBrains Mono', monospace;
     word-break: break-word;
-    overflow-wrap: break-word;
 }
 .src-label {
     font-size: clamp(0.65rem, 1.6vw, 0.7rem);
@@ -327,8 +307,12 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     margin-bottom: 0.5rem;
     font-weight: 500;
 }
+.src-meta {
+    font-size: 0.68rem;
+    color: #58a6ff;
+    margin-bottom: 0.4rem;
+}
 
-/* ── Alerts ── */
 [data-testid="stAlert"] {
     background: rgba(255,166,0,0.06) !important;
     border: 1px solid rgba(255,166,0,0.25) !important;
@@ -345,32 +329,23 @@ section[data-testid="stMain"] > div { padding-top: 0 !important; }
     font-family: 'JetBrains Mono', monospace !important;
     font-size: clamp(0.78rem, 1.8vw, 0.85rem) !important;
 }
-
-/* ── Spinner ── */
 [data-testid="stSpinner"] p {
     color: #30ff90 !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: clamp(0.78rem, 1.8vw, 0.85rem) !important;
 }
 
-/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: #30ff90; }
 
-/* ── Mobile touch improvements ── */
 @media (max-width: 768px) {
-    [data-testid="stChatMessage"] {
-        gap: 0.4rem !important;
-    }
+    [data-testid="stChatMessage"] { gap: 0.4rem !important; }
     [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown,
     [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) .stMarkdown {
         padding: 0.65rem 0.85rem !important;
     }
 }
-
-/* ── Tablet adjustments ── */
 @media (min-width: 481px) and (max-width: 1024px) {
     .hero { margin: 2.5rem auto 2rem; }
     .nav-pill { font-size: 0.65rem; padding: 0.22rem 0.5rem; }
@@ -389,7 +364,8 @@ st.markdown("""
         <div class="nav-pill active">chat</div>
         <div class="nav-pill">hybrid retrieval</div>
         <div class="nav-pill">crossencoder</div>
-        <div class="nav-pill">llama-3.3-70b</div>
+        <div class="nav-pill">memory</div>
+        <div class="nav-pill">multi-doc</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -399,61 +375,95 @@ st.markdown("""
 <div class="hero">
     <div class="hero-eyebrow">// technical documentation assistant</div>
     <h1>Query your <span class="hl">docs</span><br>like a developer</h1>
-    <p>Drop in any technical PDF — API references, architecture guides, CS textbooks —
-    and get precise, grounded answers with source citations.</p>
+    <p>Upload one or more PDFs — API references, architecture guides, CS textbooks —
+    and get precise, cited answers with full conversation memory.</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ── Session state ──
 for key, val in [
-    ("vectorstore", None), ("bm25_retriever", None),
-    ("messages", []), ("doc_name", None), ("chunk_count", 0)
+    ("vectorstore", None),
+    ("bm25_retriever", None),
+    ("messages", []),
+    ("indexed_docs", []),   # list of filenames indexed
+    ("chunk_count", 0),
+    ("all_chunks", []),     # accumulated chunks across all uploads
 ]:
     if key not in st.session_state:
         st.session_state[key] = val
 
-# ── Upload ──
+# ── Upload — multi-doc support ──
 st.markdown('<div class="upload-wrap">', unsafe_allow_html=True)
-uploaded_file = st.file_uploader(
+uploaded_files = st.file_uploader(
     "upload",
     type="pdf",
+    accept_multiple_files=True,   # Improvement 5: multiple PDFs
     label_visibility="collapsed"
 )
 st.markdown('</div>', unsafe_allow_html=True)
 
-if uploaded_file and uploaded_file.name != st.session_state.doc_name:
-    with st.spinner("$ indexing document..."):
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            tmp.write(uploaded_file.read())
-            file_path = tmp.name
+if uploaded_files:
+    new_files = [f for f in uploaded_files if f.name not in st.session_state.indexed_docs]
 
-        chunks = load_and_chunk(file_path)
-        vectorstore = build_vectorstore(chunks)
-        st.session_state.vectorstore = vectorstore
+    if new_files:
+        with st.spinner(f"$ indexing {len(new_files)} document(s)..."):
+            for uploaded_file in new_files:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+                    tmp.write(uploaded_file.read())
+                    file_path = tmp.name
 
-        bm25_retriever = BM25Retriever.from_documents(chunks)
-        bm25_retriever.k = 5
-        st.session_state.bm25_retriever = bm25_retriever
-        st.session_state.doc_name = uploaded_file.name
-        st.session_state.chunk_count = len(chunks)
-        st.session_state.messages = []
+                new_chunks = load_and_chunk(file_path, source_name=uploaded_file.name)
+                st.session_state.all_chunks.extend(new_chunks)
+                st.session_state.indexed_docs.append(uploaded_file.name)
 
-    st.success(f"✓ indexed {uploaded_file.name}")
+            # Rebuild vectorstore and BM25 from all accumulated chunks
+            all_chunks = st.session_state.all_chunks
+            st.session_state.vectorstore = build_vectorstore(all_chunks)
+
+            bm25_retriever = BM25Retriever.from_documents(all_chunks)
+            bm25_retriever.k = 5
+            st.session_state.bm25_retriever = bm25_retriever
+            st.session_state.chunk_count = len(all_chunks)
+
+        names = ", ".join([f.name for f in new_files])
+        st.success(f"✓ indexed: {names}")
 
 # ── Doc bar ──
-if st.session_state.doc_name:
-    # Truncate long filenames on mobile
-    fname = st.session_state.doc_name
-    display_name = fname if len(fname) <= 30 else fname[:27] + "..."
+if st.session_state.indexed_docs:
+    doc_count = len(st.session_state.indexed_docs)
     st.markdown(f"""
     <div class="doc-bar">
         <div class="doc-tag green">● ready</div>
-        <div class="doc-tag">📄 {display_name}</div>
+        <div class="doc-tag purple">📚 {doc_count} doc{"s" if doc_count > 1 else ""} loaded</div>
         <div class="doc-tag blue">{st.session_state.chunk_count} chunks</div>
         <div class="doc-tag">bm25 + vector</div>
         <div class="doc-tag">reranked</div>
+        <div class="doc-tag">memory on</div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Show individual doc names in expander if multiple
+    if doc_count > 1:
+        with st.expander(f"// {doc_count} indexed documents"):
+            for i, name in enumerate(st.session_state.indexed_docs, 1):
+                display = name if len(name) <= 50 else name[:47] + "..."
+                st.markdown(f"""
+                <div style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;
+                color:#8b949e;padding:0.3rem 0;border-bottom:1px solid #21262d;">
+                    <span style="color:#30ff90">doc_{i}</span> · {display}
+                </div>
+                """, unsafe_allow_html=True)
+
+# ── Clear button in sidebar ──
+with st.sidebar:
+    st.markdown("### DevDocs AI")
+    if st.button("🗑️ Clear all documents", use_container_width=True):
+        for key in ["vectorstore", "bm25_retriever", "messages", "indexed_docs", "chunk_count", "all_chunks"]:
+            st.session_state[key] = [] if key in ["messages", "indexed_docs", "all_chunks"] else (0 if key == "chunk_count" else None)
+        st.rerun()
+    if st.button("🧹 Clear chat history", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
 
 # ── Chat ──
 st.markdown('<div class="chat-area">', unsafe_allow_html=True)
@@ -464,9 +474,11 @@ for msg in st.session_state.messages:
         if msg["role"] == "assistant" and msg.get("sources"):
             with st.expander(f"// {len(msg['sources'])} source chunk(s)"):
                 for i, src in enumerate(msg["sources"], 1):
+                    section_info = f" · {src['section']}" if src.get("section") else ""
                     st.markdown(f"""
                     <div class="src-card">
-                        <div class="src-label">src_{i} · page {src['page']}</div>
+                        <div class="src-label">src_{i} · p.{src['page']}{section_info}</div>
+                        <div class="src-meta">📄 {src['source']}</div>
                         {src['text']}
                     </div>
                     """, unsafe_allow_html=True)
@@ -474,7 +486,7 @@ for msg in st.session_state.messages:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Input ──
-placeholder = "// ask a technical question..." if st.session_state.doc_name else "// upload a PDF to get started"
+placeholder = "// ask a technical question..." if st.session_state.indexed_docs else "// upload PDF(s) to get started"
 query = st.chat_input(placeholder)
 
 if query:
@@ -484,13 +496,15 @@ if query:
 
     with st.chat_message("assistant"):
         if st.session_state.vectorstore is None:
-            st.warning("// no document loaded. upload a PDF first.")
+            st.warning("// no documents loaded. upload a PDF first.")
         else:
             with st.spinner("// retrieving · reranking · generating..."):
+                # Improvement 4: pass full chat history for memory
                 answer, docs, below_threshold = generate_answer(
                     query,
                     st.session_state.vectorstore,
-                    st.session_state.bm25_retriever
+                    st.session_state.bm25_retriever,
+                    chat_history=st.session_state.messages[:-1]  # exclude current user msg
                 )
 
             if below_threshold:
@@ -503,11 +517,15 @@ if query:
                 with st.expander(f"// {len(docs)} source chunk(s)"):
                     for i, doc in enumerate(docs, 1):
                         page = doc.metadata.get("page", "?")
+                        source = doc.metadata.get("source", "")
+                        section = doc.metadata.get("section", "")
                         text = doc.page_content[:400] + ("..." if len(doc.page_content) > 400 else "")
-                        sources.append({"page": page, "text": text})
+                        sources.append({"page": page, "source": source, "section": section, "text": text})
+                        section_info = f" · {section}" if section else ""
                         st.markdown(f"""
                         <div class="src-card">
-                            <div class="src-label">src_{i} · page {page}</div>
+                            <div class="src-label">src_{i} · p.{page}{section_info}</div>
+                            <div class="src-meta">📄 {source}</div>
                             {text}
                         </div>
                         """, unsafe_allow_html=True)
