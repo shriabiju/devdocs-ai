@@ -2,7 +2,7 @@
 
 # ⚡ DevDocs AI
 
-### Production-Grade Retrieval Augmented Generation for Technical Documentation
+### Retrieval Augmented Generation for Technical Documentation
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![Groq](https://img.shields.io/badge/Groq-llama--3.3--70b-F55036?style=flat-square)](https://groq.com)
@@ -260,6 +260,43 @@ Every retrieved set has a maximum reranker score. If that score falls below the 
 - [ ] Query expansion with HyDE (Hypothetical Document Embeddings)
 
 ---
+
+## 🧠 Advanced Capabilities
+
+### 📌 Metadata-Aware Retrieval
+Each chunk is enriched with:
+- Source document name
+- Page number
+- Section heading (auto-detected)
+
+This enables precise citation and improves retrieval relevance.
+
+---
+
+### 🧩 Dual Chunking Strategy
+Two chunk sizes are indexed:
+- 800 tokens (context-rich)
+- 400 tokens (precision-focused)
+
+This balances recall and precision during retrieval.
+
+---
+
+### 💬 Conversational Memory
+The system supports multi-turn interactions by maintaining a sliding window of recent conversation history. Follow-up queries like “what about subclasses?” are resolved correctly.
+
+---
+
+### 📚 Multi-Document Knowledge Base
+Users can upload multiple PDFs. All documents are indexed together, enabling cross-document querying with accurate source attribution.
+
+---
+
+### ⚡ Caching Layer
+- Embeddings cached to avoid reloading models
+- Reranker scores cached for repeated queries
+
+This significantly improves response time.
 
 ## 🤝 Contributing
 
