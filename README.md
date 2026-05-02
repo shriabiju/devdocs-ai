@@ -17,7 +17,9 @@
 
 ---
 
-![DevDocs AI Screenshot](https://placehold.co/900x480/0d1117/30ff90?text=DevDocs+AI+%E2%80%94+Terminal+UI&font=monospace)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://devdocs-ai.streamlit.app)
+
+**🚀 [Try the live demo → devdocs-ai.streamlit.app](https://devdocs-ai.streamlit.app)**
 
 </div>
 
@@ -166,6 +168,13 @@ streamlit run app.py
 
 Open your browser at `http://localhost:8501` and upload a PDF to start querying.
 
+### CLI Usage
+
+```bash
+# Test the pipeline directly without the UI
+python main.py --pdf path/to/your.pdf --query "what is inheritance?"
+```
+
 ---
 
 ## 📁 Project Structure
@@ -178,11 +187,7 @@ devdocs-ai/
 ├── main.py                 # CLI entrypoint for testing the pipeline
 ├── evaluate.py             # Offline evaluation — faithfulness, similarity, CI gate
 ├── requirements.txt        # Python dependencies
-│
-├── data/
-│   └── sample.pdf          # Your document goes here (for CLI testing)
-│
-└── chroma_db/              # Persisted vector store (auto-created)
+└── README.md               # You are here
 ```
 
 ---
