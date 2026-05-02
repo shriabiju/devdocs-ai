@@ -1,14 +1,14 @@
 """
 rag_pipeline.py — Core RAG pipeline
 Domain: Software / Technical Documentation
-Uses: Groq API (llama-3.3-70b-versatile), ChromaDB, BM25, CrossEncoder reranker
+Uses: Groq API (llama-3.3-70b-versatile), FAISS, BM25, CrossEncoder reranker
 """
 
 import os
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_community.retrievers import BM25Retriever
 from sentence_transformers import CrossEncoder
 from groq import Groq
@@ -18,7 +18,6 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 GROQ_MODEL = "llama-3.3-70b-versatile"
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 EMBED_MODEL = "all-MiniLM-L6-v2"
-CHROMA_DIR = "./chroma_db"
 PDF_PATH = "data/sample.pdf"
 
 # Confidence threshold — below this score, refuse to answer
@@ -88,22 +87,12 @@ def load_and_chunk(pdf_path: str) -> list:
     return filtered
 
 
-def build_vectorstore(chunks: list) -> Chroma:
-    return Chroma.from_documents(
-        chunks,
-        embedding=_embeddings,
-        persist_directory=CHROMA_DIR
-    )
+def build_vectorstore(chunks: list) -> FAISS:
+    """Build in-memory FAISS vectorstore from chunks."""
+    return FAISS.from_documents(chunks, embedding=_embeddings)
 
 
-def load_vectorstore() -> Chroma:
-    return Chroma(
-        persist_directory=CHROMA_DIR,
-        embedding_function=_embeddings
-    )
-
-
-def hybrid_retrieve(query: str, vectorstore: Chroma, bm25_retriever: BM25Retriever, k: int = 5) -> list:
+def hybrid_retrieve(query: str, vectorstore: FAISS, bm25_retriever: BM25Retriever, k: int = 5) -> list:
     """Combine vector search + BM25, deduplicate."""
     vec_docs = vectorstore.similarity_search(query, k=k)
     bm25_docs = bm25_retriever.invoke(query)
@@ -130,7 +119,7 @@ def rerank_with_scores(query: str, docs: list) -> list:
     return scored
 
 
-def retrieve_docs(query: str, vectorstore: Chroma, bm25_retriever: BM25Retriever, top_k: int = 3):
+def retrieve_docs(query: str, vectorstore: FAISS, bm25_retriever: BM25Retriever, top_k: int = 3):
     """
     Full retrieval: hybrid search -> rerank -> confidence gate.
     Returns (docs, below_threshold: bool)
@@ -147,7 +136,7 @@ def retrieve_docs(query: str, vectorstore: Chroma, bm25_retriever: BM25Retriever
     return top_docs, below_threshold
 
 
-def generate_answer(query: str, vectorstore: Chroma, bm25_retriever: BM25Retriever):
+def generate_answer(query: str, vectorstore: FAISS, bm25_retriever: BM25Retriever):
     """
     Full RAG pipeline: retrieve -> gate -> generate with Groq.
     Returns (answer: str, docs: list, below_threshold: bool)
